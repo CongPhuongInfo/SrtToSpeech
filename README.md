@@ -1,5 +1,9 @@
 # SrtToSpeechApp
 
+<p align="center">
+  <img src="SrtToSpeech-logo.png" width="800">
+</p>
+
 Ứng dụng WinForms (VB.NET, .NET 9) chuyển file phụ đề `.srt` thành file âm thanh `.wav`, đọc từng câu bằng giọng TTS có sẵn trên Windows (SAPI) và **đặt đúng vị trí thời gian** theo mốc timestamp trong file SRT gốc — giống như lồng tiếng tự động theo phụ đề.
 
 ## Tính năng

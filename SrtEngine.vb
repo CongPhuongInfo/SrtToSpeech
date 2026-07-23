@@ -76,6 +76,29 @@ Module SrtParser
 End Module
 
 ' ==================== TTS bằng SAPI (System.Speech.Synthesis) ====================
+
+' Thông tin 1 giọng đọc: tên thật (để SelectVoice) + giới tính hiển thị cho người dùng
+Public Class VoiceOption
+    Public Property Name As String
+    Public Property Gender As VoiceGender
+    Public Property Culture As Globalization.CultureInfo
+
+    Public Overrides Function ToString() As String
+        Dim genderText As String
+        Select Case Gender
+            Case VoiceGender.Male
+                genderText = "Nam"
+            Case VoiceGender.Female
+                genderText = "Nữ"
+            Case Else
+                genderText = "Không rõ"
+        End Select
+
+        Dim cultureText As String = If(Culture IsNot Nothing, $" - {Culture.DisplayName}", "")
+        Return $"{Name}{cultureText} [{genderText}]"
+    End Function
+End Class
+
 Module TtsEngine
 
     ' Định dạng âm thanh dùng chung cho toàn bộ quá trình để dễ trộn: 22050Hz, 16-bit, mono
@@ -83,13 +106,19 @@ Module TtsEngine
     Public ReadOnly BitsPerSample As Integer = 16
     Public ReadOnly Channels As Integer = 1
 
-    Public Function GetInstalledVoices() As List(Of String)
-        Dim result As New List(Of String)()
+    ' Lấy toàn bộ giọng đọc đã cài, kèm giới tính. Có thể lọc theo giới tính (Nothing = lấy hết).
+    Public Function GetInstalledVoices(Optional genderFilter As VoiceGender? = Nothing) As List(Of VoiceOption)
+        Dim result As New List(Of VoiceOption)()
         Using synth As New SpeechSynthesizer()
             For Each v In synth.GetInstalledVoices()
-                If v.Enabled Then
-                    result.Add(v.VoiceInfo.Name)
-                End If
+                If Not v.Enabled Then Continue For
+                If genderFilter.HasValue AndAlso v.VoiceInfo.Gender <> genderFilter.Value Then Continue For
+
+                result.Add(New VoiceOption With {
+                    .Name = v.VoiceInfo.Name,
+                    .Gender = v.VoiceInfo.Gender,
+                    .Culture = v.VoiceInfo.Culture
+                })
             Next
         End Using
         Return result

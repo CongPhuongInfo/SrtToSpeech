@@ -23,3 +23,29 @@ C:\Users\Administrator\Downloads\SrtToSpeechApp_full_source\obj\Release\net9.0-w
 C:\Users\Administrator\Downloads\SrtToSpeechApp_full_source\obj\Release\net9.0-windows\SrtToSpeechApp.pdb
 C:\Users\Administrator\Downloads\SrtToSpeechApp_full_source\obj\Release\net9.0-windows\SrtToSpeechApp.genruntimeconfig.cache
 C:\Users\Administrator\Downloads\SrtToSpeechApp_full_source\obj\Release\net9.0-windows\ref\SrtToSpeechApp.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\SrtToSpeechApp.exe
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\SrtToSpeechApp.deps.json
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\SrtToSpeechApp.runtimeconfig.json
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\SrtToSpeechApp.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\SrtToSpeechApp.pdb
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.Asio.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.Core.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.Midi.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.Wasapi.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.WinForms.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\NAudio.WinMM.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\System.Speech.dll
+D:\Source Code\Tool-Video\SrtToSpeech\bin\Release\net9.0-windows\runtimes\win\lib\net8.0\System.Speech.dll
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.vbproj.AssemblyReference.cache
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.GeneratedMSBuildEditorConfig.editorconfig
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.AssemblyInfoInputs.cache
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.AssemblyInfo.vb
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.vbproj.CoreCompileInputs.cache
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.sourcelink.json
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpe.2B6AFED5.Up2Date
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.dll
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\refint\SrtToSpeechApp.dll
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.pdb
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\SrtToSpeechApp.genruntimeconfig.cache
+D:\Source Code\Tool-Video\SrtToSpeech\obj\Release\net9.0-windows\ref\SrtToSpeechApp.dll

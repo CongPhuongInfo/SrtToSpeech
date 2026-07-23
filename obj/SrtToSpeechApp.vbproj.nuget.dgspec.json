@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\SrtToSpeechApp.vbproj": {}
+    "D:\\Source Code\\Tool-Video\\SrtToSpeech\\SrtToSpeechApp.vbproj": {}
   },
   "projects": {
-    "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\SrtToSpeechApp.vbproj": {
+    "D:\\Source Code\\Tool-Video\\SrtToSpeech\\SrtToSpeechApp.vbproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\SrtToSpeechApp.vbproj",
+        "projectUniqueName": "D:\\Source Code\\Tool-Video\\SrtToSpeech\\SrtToSpeechApp.vbproj",
         "projectName": "SrtToSpeechApp",
-        "projectPath": "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\SrtToSpeechApp.vbproj",
+        "projectPath": "D:\\Source Code\\Tool-Video\\SrtToSpeech\\SrtToSpeechApp.vbproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\obj\\",
+        "outputPath": "D:\\Source Code\\Tool-Video\\SrtToSpeech\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

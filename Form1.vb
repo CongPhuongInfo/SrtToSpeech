@@ -1,5 +1,6 @@
 Imports System.Collections.Generic
 Imports System.Drawing
+Imports System.Speech.Synthesis
 Imports System.Threading.Tasks
 Imports System.Windows.Forms
 
@@ -10,6 +11,8 @@ Public Class Form1
     Private btnBrowse As Button
     Private lblVoice As Label
     Private cmbVoice As ComboBox
+    Private lblGender As Label
+    Private cmbGender As ComboBox
     Private btnRefreshVoices As Button
     Private lblRate As Label
     Private trkRate As TrackBar
@@ -66,7 +69,20 @@ Public Class Form1
         cmbVoice = New ComboBox()
         cmbVoice.DropDownStyle = ComboBoxStyle.DropDownList
         cmbVoice.Location = New Point(10, 86)
-        cmbVoice.Width = 400
+        cmbVoice.Width = 300
+
+        lblGender = New Label()
+        lblGender.Text = "Giới tính:"
+        lblGender.Location = New Point(320, 68)
+        lblGender.AutoSize = True
+
+        cmbGender = New ComboBox()
+        cmbGender.DropDownStyle = ComboBoxStyle.DropDownList
+        cmbGender.Location = New Point(320, 86)
+        cmbGender.Width = 90
+        cmbGender.Items.AddRange(New String() {"Tất cả", "Nam", "Nữ"})
+        cmbGender.SelectedIndex = 0
+        AddHandler cmbGender.SelectedIndexChanged, AddressOf cmbGender_SelectedIndexChanged
 
         btnRefreshVoices = New Button()
         btnRefreshVoices.Text = "Làm mới danh sách"
@@ -105,6 +121,8 @@ Public Class Form1
         topPanel.Controls.Add(btnBrowse)
         topPanel.Controls.Add(lblVoice)
         topPanel.Controls.Add(cmbVoice)
+        topPanel.Controls.Add(lblGender)
+        topPanel.Controls.Add(cmbGender)
         topPanel.Controls.Add(btnRefreshVoices)
         topPanel.Controls.Add(lblRate)
         topPanel.Controls.Add(trkRate)
@@ -181,16 +199,31 @@ Public Class Form1
 
     Private Sub LoadVoices()
         cmbVoice.Items.Clear()
-        Dim voices As List(Of String) = TtsEngine.GetInstalledVoices()
+
+        Dim genderFilter As VoiceGender? = Nothing
+        Select Case cmbGender.SelectedItem?.ToString()
+            Case "Nam"
+                genderFilter = VoiceGender.Male
+            Case "Nữ"
+                genderFilter = VoiceGender.Female
+        End Select
+
+        Dim voices As List(Of VoiceOption) = TtsEngine.GetInstalledVoices(genderFilter)
 
         If voices.Count = 0 Then
-            AppendLog("Không tìm thấy giọng đọc nào trên máy. Vào Settings > Time & Language > Speech để cài thêm giọng.")
+            AppendLog("Không tìm thấy giọng đọc nào phù hợp. Vào Settings > Time & Language > Speech để cài thêm giọng, hoặc chọn lại bộ lọc giới tính.")
             Return
         End If
 
-        cmbVoice.Items.AddRange(voices.ToArray())
+        For Each v In voices
+            cmbVoice.Items.Add(v)
+        Next
         cmbVoice.SelectedIndex = 0
-        AppendLog($"Tìm thấy {voices.Count} giọng đọc: {String.Join(", ", voices)}")
+        AppendLog($"Tìm thấy {voices.Count} giọng đọc phù hợp.")
+    End Sub
+
+    Private Sub cmbGender_SelectedIndexChanged(sender As Object, e As EventArgs)
+        LoadVoices()
     End Sub
 
     Private Sub btnRefreshVoices_Click(sender As Object, e As EventArgs)
@@ -223,7 +256,8 @@ Public Class Form1
         End If
 
         Dim filePath As String = txtFilePath.Text
-        Dim voiceName As String = cmbVoice.SelectedItem.ToString()
+        Dim selectedVoice As VoiceOption = CType(cmbVoice.SelectedItem, VoiceOption)
+        Dim voiceName As String = selectedVoice.Name
         Dim rate As Integer = trkRate.Value
 
         SetUiEnabled(False)
@@ -305,6 +339,7 @@ Public Class Form1
         btnBrowse.Enabled = enabled
         btnConvert.Enabled = enabled
         cmbVoice.Enabled = enabled
+        cmbGender.Enabled = enabled
         btnRefreshVoices.Enabled = enabled
         trkRate.Enabled = enabled
     End Sub

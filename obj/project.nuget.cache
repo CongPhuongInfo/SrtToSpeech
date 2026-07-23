@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PsiKq/ZFKVI=",
+  "dgSpecHash": "RhIOl1Ud5wU=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Administrator\\Downloads\\SrtToSpeechApp_full_source\\SrtToSpeechApp.vbproj",
+  "projectFilePath": "D:\\Source Code\\Tool-Video\\SrtToSpeech\\SrtToSpeechApp.vbproj",
   "expectedPackageFiles": [
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",
