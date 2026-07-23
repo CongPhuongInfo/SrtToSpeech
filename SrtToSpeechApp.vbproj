@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <RootNamespace>SrtToSpeechApp</RootNamespace>
+    <StartupObject>SrtToSpeechApp.Program</StartupObject>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- System.Speech.Synthesis (SAPI TTS) - doc van ban thanh giong noi, dung giong da cai tren Windows -->
+    <PackageReference Include="System.Speech" Version="8.0.0" />
+
+    <!-- NAudio de doc/ghi file WAV va xu ly PCM samples -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+</Project>
