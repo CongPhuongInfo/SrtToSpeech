@@ -15,7 +15,7 @@ Imports System.Reflection
 <Assembly: System.Reflection.AssemblyCompanyAttribute("SrtToSpeechApp"),  _
  Assembly: System.Reflection.AssemblyConfigurationAttribute("Release"),  _
  Assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0"),  _
- Assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+163762db697c1e47da03657c29741896581ef814"),  _
+ Assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+145077476fc361829fc90e67795b71bed92c1c3f"),  _
  Assembly: System.Reflection.AssemblyProductAttribute("SrtToSpeechApp"),  _
  Assembly: System.Reflection.AssemblyTitleAttribute("SrtToSpeechApp"),  _
  Assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0"),  _

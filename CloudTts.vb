@@ -18,6 +18,29 @@ Public Module CloudTts
     ' Token công khai được cộng đồng dùng cho Edge Read Aloud (API không chính thức).
     ' Có thể ngừng hoạt động bất cứ lúc nào nếu Microsoft đổi cơ chế xác thực.
     Private Const EdgeTrustedToken As String = "6A5AA1D4EAFF4E9FB37E23D68491D6F4"
+    Private Const EdgeChromiumVersion As String = "130.0.2849.68"
+    Private Const EdgeUserAgent As String = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
+
+    ' Microsoft hiện yêu cầu thêm 1 token "Sec-MS-GEC" tính động theo thời gian (làm tròn xuống
+    ' mốc 5 phút gần nhất, đổi sang Windows file time, rồi SHA256 cùng với TrustedClientToken).
+    ' Nếu không có token này server sẽ trả về 400 Bad Request.
+    Private Function GenerateSecMsGec() As String
+        Const winEpoch As Long = 11644473600L
+        Dim ticks As Double = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        ticks += winEpoch
+        ticks -= ticks Mod 300
+        ticks *= 10000000.0 ' đổi sang khoảng 100-nanosecond (Windows file time)
+
+        Dim strToHash As String = ticks.ToString("F0", Globalization.CultureInfo.InvariantCulture) & EdgeTrustedToken
+        Using sha As System.Security.Cryptography.SHA256 = System.Security.Cryptography.SHA256.Create()
+            Dim hashBytes As Byte() = sha.ComputeHash(Encoding.ASCII.GetBytes(strToHash))
+            Dim sb As New StringBuilder()
+            For Each b In hashBytes
+                sb.Append(b.ToString("X2"))
+            Next
+            Return sb.ToString()
+        End Using
+    End Function
 
     ' ---------- Chuyển audio thô (WAV hoặc MP3) về định dạng chuẩn để trộn ----------
     Public Function ConvertToStandardSamples(rawAudioBytes As Byte(), isMp3 As Boolean) As Short()
@@ -245,8 +268,20 @@ Public Module CloudTts
     ' reverse-engineer. KHÔNG có SLA, có thể ngừng hoạt động bất cứ lúc nào.
 
     Public Async Function GetEdgeVoicesAsync() As Task(Of List(Of VoiceOption))
-        Dim url As String = $"https://speech.platform.bing.com/consensus/voices/list?trustedclienttoken={EdgeTrustedToken}"
-        Dim responseText As String = Await httpClient.GetStringAsync(url)
+        Dim url As String = $"https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list?trustedclienttoken={EdgeTrustedToken}&Sec-MS-GEC={GenerateSecMsGec()}&Sec-MS-GEC-Version=1-{EdgeChromiumVersion}"
+
+        Using request As New HttpRequestMessage(HttpMethod.Get, url)
+            request.Headers.TryAddWithoutValidation("User-Agent", EdgeUserAgent)
+            request.Headers.TryAddWithoutValidation("Authority", "speech.platform.bing.com")
+            Using response As HttpResponseMessage = Await httpClient.SendAsync(request)
+                response.EnsureSuccessStatusCode()
+                Dim responseText As String = Await response.Content.ReadAsStringAsync()
+                Return ParseEdgeVoicesJson(responseText)
+            End Using
+        End Using
+    End Function
+
+    Private Function ParseEdgeVoicesJson(responseText As String) As List(Of VoiceOption)
 
         Dim result As New List(Of VoiceOption)()
         Using doc As JsonDocument = JsonDocument.Parse(responseText)
@@ -272,9 +307,13 @@ Public Module CloudTts
     Public Async Function SynthesizeEdgeAsync(text As String, voiceShortName As String, ratePercent As Integer) As Task(Of Short())
         Dim connectionId As String = Guid.NewGuid().ToString("N")
         Dim requestId As String = Guid.NewGuid().ToString("N")
-        Dim wsUrl As String = $"wss://speech.platform.bing.com/consensus/speech/synthesize/readaloud/edge/v1?TrustedClientToken={EdgeTrustedToken}&ConnectionId={connectionId}"
+        Dim wsUrl As String = $"wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken={EdgeTrustedToken}&Sec-MS-GEC={GenerateSecMsGec()}&Sec-MS-GEC-Version=1-{EdgeChromiumVersion}&ConnectionId={connectionId}"
 
         Using ws As New ClientWebSocket()
+            ws.Options.SetRequestHeader("Pragma", "no-cache")
+            ws.Options.SetRequestHeader("Cache-Control", "no-cache")
+            ws.Options.SetRequestHeader("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold")
+            ws.Options.SetRequestHeader("User-Agent", EdgeUserAgent)
             Await ws.ConnectAsync(New Uri(wsUrl), CancellationToken.None)
 
             Dim timestamp As String = DateTime.UtcNow.ToString("ddd MMM dd yyyy HH:mm:ss 'GMT+0000 (Coordinated Universal Time)'", Globalization.CultureInfo.InvariantCulture)

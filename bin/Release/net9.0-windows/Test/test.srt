@@ -1,0 +1,23 @@
+1
+00:00:00,500 --> 00:00:03,000
+Xin chào, đây là đoạn phụ đề đầu tiên để kiểm tra.
+
+2
+00:00:03,500 --> 00:00:06,500
+Ứng dụng sẽ chuyển đổi từng câu này thành giọng nói.
+
+3
+00:00:07,000 --> 00:00:10,000
+Và ghép đúng vào mốc thời gian tương ứng trong file SRT.
+
+4
+00:00:10,500 --> 00:00:13,000
+Đây là câu thứ tư, dùng để kiểm tra tốc độ đọc.
+
+5
+00:00:13,500 --> 00:00:17,500
+Câu này hơi dài hơn một chút, để xem app có cảnh báo tràn thời gian khung phụ đề hay không.
+
+6
+00:00:18,000 --> 00:00:20,000
+Xin cảm ơn và tạm biệt.
