@@ -2,7 +2,17 @@ Imports System.Linq
 Imports System.Speech.AudioFormat
 Imports System.Speech.Synthesis
 Imports System.Text.RegularExpressions
+Imports System.Threading.Tasks
 Imports NAudio.Wave
+
+' Các nguồn giọng đọc (TTS provider) mà app hỗ trợ
+Public Enum TtsProvider
+    Sapi        ' Windows Speech (offline, miễn phí)
+    GoogleCloud ' Google Cloud Text-to-Speech (cần API key)
+    Azure       ' Azure Speech (cần API key + region)
+    EdgeTts     ' Microsoft Edge Read Aloud (miễn phí, KHÔNG CHÍNH THỨC)
+    ElevenLabs  ' ElevenLabs (cần API key)
+End Enum
 
 ' Một dòng phụ đề: số thứ tự, mốc bắt đầu/kết thúc, nội dung.
 Public Class SrtEntry
@@ -12,6 +22,31 @@ Public Class SrtEntry
     Public Property Text As String
 End Class
 
+' Thông tin 1 giọng đọc, dùng chung cho mọi nguồn (SAPI/Google/Azure/Edge)
+Public Class VoiceOption
+    Public Property Name As String            ' Tên định danh thật, dùng khi gọi API tổng hợp giọng nói
+    Public Property DisplayName As String      ' Tên hiển thị thân thiện (dùng khi Name là ID kỹ thuật, vd ElevenLabs voice_id)
+    Public Property Gender As VoiceGender
+    Public Property LanguageCode As String     ' vd: "vi-VN"
+    Public Property Provider As TtsProvider
+
+    Public Overrides Function ToString() As String
+        Dim genderText As String
+        Select Case Gender
+            Case VoiceGender.Male
+                genderText = "Nam"
+            Case VoiceGender.Female
+                genderText = "Nữ"
+            Case Else
+                genderText = "Không rõ"
+        End Select
+
+        Dim label As String = If(String.IsNullOrEmpty(DisplayName), Name, DisplayName)
+        Dim langText As String = If(String.IsNullOrEmpty(LanguageCode), "", $" - {LanguageCode}")
+        Return $"{label}{langText} [{genderText}]"
+    End Function
+End Class
+
 ' ==================== Đọc file SRT ====================
 Module SrtParser
 
@@ -19,7 +54,6 @@ Module SrtParser
         Dim entries As New List(Of SrtEntry)()
         Dim rawText As String = IO.File.ReadAllText(filePath)
 
-        ' Chuẩn hóa xuống dòng, tách từng khối theo dòng trống
         rawText = rawText.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
         Dim blocks() As String = Regex.Split(rawText.Trim(), "\n\s*\n")
 
@@ -32,7 +66,6 @@ Module SrtParser
             Dim lineIdx As Integer = 0
             Dim indexValue As Integer = entries.Count + 1
 
-            ' Dòng đầu thường là số thứ tự (bỏ qua nếu không parse được số)
             If Integer.TryParse(lines(0).Trim(), indexValue) Then
                 lineIdx = 1
             End If
@@ -48,7 +81,6 @@ Module SrtParser
 
             Dim textLines As New List(Of String)()
             For i As Integer = lineIdx + 1 To lines.Length - 1
-                ' Bỏ các thẻ định dạng kiểu <i>, <b>, {\an8}... đơn giản
                 Dim cleaned As String = Regex.Replace(lines(i), "<[^>]+>", "")
                 cleaned = Regex.Replace(cleaned, "\{[^}]+\}", "")
                 textLines.Add(cleaned.Trim())
@@ -75,30 +107,7 @@ Module SrtParser
 
 End Module
 
-' ==================== TTS bằng SAPI (System.Speech.Synthesis) ====================
-
-' Thông tin 1 giọng đọc: tên thật (để SelectVoice) + giới tính hiển thị cho người dùng
-Public Class VoiceOption
-    Public Property Name As String
-    Public Property Gender As VoiceGender
-    Public Property Culture As Globalization.CultureInfo
-
-    Public Overrides Function ToString() As String
-        Dim genderText As String
-        Select Case Gender
-            Case VoiceGender.Male
-                genderText = "Nam"
-            Case VoiceGender.Female
-                genderText = "Nữ"
-            Case Else
-                genderText = "Không rõ"
-        End Select
-
-        Dim cultureText As String = If(Culture IsNot Nothing, $" - {Culture.DisplayName}", "")
-        Return $"{Name}{cultureText} [{genderText}]"
-    End Function
-End Class
-
+' ==================== TTS bằng SAPI (System.Speech.Synthesis) - offline ====================
 Module TtsEngine
 
     ' Định dạng âm thanh dùng chung cho toàn bộ quá trình để dễ trộn: 22050Hz, 16-bit, mono
@@ -106,18 +115,16 @@ Module TtsEngine
     Public ReadOnly BitsPerSample As Integer = 16
     Public ReadOnly Channels As Integer = 1
 
-    ' Lấy toàn bộ giọng đọc đã cài, kèm giới tính. Có thể lọc theo giới tính (Nothing = lấy hết).
-    Public Function GetInstalledVoices(Optional genderFilter As VoiceGender? = Nothing) As List(Of VoiceOption)
+    Public Function GetInstalledVoices() As List(Of VoiceOption)
         Dim result As New List(Of VoiceOption)()
         Using synth As New SpeechSynthesizer()
             For Each v In synth.GetInstalledVoices()
                 If Not v.Enabled Then Continue For
-                If genderFilter.HasValue AndAlso v.VoiceInfo.Gender <> genderFilter.Value Then Continue For
-
                 result.Add(New VoiceOption With {
                     .Name = v.VoiceInfo.Name,
                     .Gender = v.VoiceInfo.Gender,
-                    .Culture = v.VoiceInfo.Culture
+                    .LanguageCode = v.VoiceInfo.Culture?.Name,
+                    .Provider = TtsProvider.Sapi
                 })
             Next
         End Using
@@ -133,7 +140,6 @@ Module TtsEngine
                 Try
                     synth.SelectVoice(voiceName)
                 Catch
-                    ' Nếu giọng không còn tồn tại, dùng giọng mặc định
                 End Try
             End If
             synth.Rate = rate
@@ -159,24 +165,23 @@ Module TtsEngine
 End Module
 
 ' ==================== Ghép các đoạn audio vào đúng vị trí thời gian theo SRT ====================
+' Provider-agnostic: nhận vào 1 hàm "đọc 1 câu -> mảng mẫu PCM", không quan tâm câu đó
+' được tổng hợp bằng SAPI, Google, Azure hay Edge.
 Module AudioMixer
 
-    ' Kết quả trộn: mảng mẫu PCM cuối cùng + danh sách cảnh báo (đoạn đọc bị tràn qua câu kế tiếp)
     Public Class MixResult
         Public Property Samples As Short()
         Public Property Warnings As New List(Of String)()
     End Class
 
-    Public Function BuildTimedAudio(entries As List(Of SrtEntry),
-                                     voiceName As String,
-                                     rate As Integer,
-                                     log As IProgress(Of String),
-                                     progress As IProgress(Of Integer)) As MixResult
+    Public Async Function BuildTimedAudio(entries As List(Of SrtEntry),
+                                           synthesizeFunc As Func(Of String, Task(Of Short())),
+                                           log As IProgress(Of String),
+                                           progress As IProgress(Of Integer)) As Task(Of MixResult)
 
         Dim result As New MixResult()
         If entries.Count = 0 Then Return result
 
-        ' Tổng thời lượng: lấy mốc kết thúc xa nhất, cộng thêm 1 giây đệm
         Dim totalDuration As TimeSpan = entries.Max(Function(en) en.[End]) + TimeSpan.FromSeconds(1)
         Dim totalSamples As Integer = CInt(totalDuration.TotalSeconds * TtsEngine.SampleRate)
         Dim buffer(totalSamples - 1) As Short
@@ -185,7 +190,7 @@ Module AudioMixer
             Dim entry = entries(i)
             log.Report($"[{entry.Index}] ({entry.Start:hh\:mm\:ss}) {entry.Text}")
 
-            Dim segmentSamples As Short() = TtsEngine.SynthesizeToSamples(entry.Text, voiceName, rate)
+            Dim segmentSamples As Short() = Await synthesizeFunc(entry.Text)
             Dim segmentDuration As TimeSpan = TimeSpan.FromSeconds(segmentSamples.Length / CDbl(TtsEngine.SampleRate))
             Dim slotDuration As TimeSpan = entry.[End] - entry.Start
 
@@ -198,7 +203,6 @@ Module AudioMixer
 
             Dim startSample As Integer = CInt(entry.Start.TotalSeconds * TtsEngine.SampleRate)
 
-            ' Cộng dồn (mix) vào buffer chính, có giới hạn để tránh tràn số (clipping)
             For s As Integer = 0 To segmentSamples.Length - 1
                 Dim targetIndex As Integer = startSample + s
                 If targetIndex >= 0 AndAlso targetIndex < buffer.Length Then
@@ -215,7 +219,6 @@ Module AudioMixer
         Return result
     End Function
 
-    ' Ghi mảng mẫu PCM ra file .wav hoàn chỉnh
     Public Sub WriteWavFile(samples As Short(), outputPath As String)
         Dim format As New WaveFormat(TtsEngine.SampleRate, TtsEngine.BitsPerSample, TtsEngine.Channels)
         Using writer As New WaveFileWriter(outputPath, format)
